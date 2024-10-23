@@ -1,8 +1,8 @@
 # Mandelbrot Set Renderer
 
 This is a program using [SDL2](https://www.libsdl.org/) and [OpenGL](https://www.opengl.org/) 4.5 that renders an
-image of the [mandelbrot set] on a compatible GPU. I wrote this over a few hours. There are definitely more
-interesting ways to render this fractal, but it was still pretty fun.
+image of the [mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) on a compatible GPU. I wrote this over a
+few hours. There are definitely more interesting ways to render this fractal, but it was still pretty fun.
 
 ## Dependencies
 
