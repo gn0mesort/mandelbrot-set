@@ -1,3 +1,10 @@
+/**
+ * @file shaders.hpp
+ * @brief Server-Side Shader Programs
+ * @author Alexander Rothman <[gnomesort@megate.ch](mailto:gnomesort@megate.ch)>
+ * @copyright AGPL-3.0-or-later
+ * @date 2024
+ */
 #ifndef SHADERS_HPP
 #define SHADERS_HPP
 

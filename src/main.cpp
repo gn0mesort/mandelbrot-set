@@ -1,3 +1,10 @@
+/**
+ * @file main.cpp
+ * @brief Client-Side Application Program
+ * @author Alexander Rothman <[gnomesort@megate.ch](mailto:gnomesort@megate.ch)>
+ * @copyright AGPL-3.0-or-later
+ * @date 2024
+ */
 #include <cstdlib>
 
 #include <array>
