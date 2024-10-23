@@ -26,6 +26,6 @@ if get_option('colors').allowed()
   config.set('CONFIG_ENABLE_COLORS', 1)
 endif
 config_header = configure_file(configuration: config, input: files('generated/config.hpp.in'), output: 'config.hpp')
-sources = [ config_header, files('src/main.cpp', 'src/glad.c') ]
+sources = [ config_header, files('src/main.cpp', 'src/glad/glad.c') ]
 executable('@0@.@1@.@2@'.format(meson.project_name(), host_machine.cpu_family(), meson.project_version()), sources,
            include_directories: includes, dependencies: dependencies, install: true)
