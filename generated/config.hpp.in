@@ -1,0 +1,16 @@
+/**
+ * @file config.hpp.in
+ * @brief Configuration Header
+ * @details This requires Meson to properly configure.
+ * @author Alexander Rothman <[gnomesort@megate.ch](mailto:gnomesort@megate.ch)>
+ * @copyright AGPL-3.0-or-later
+ * @date 2024
+ */
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
+
+#mesondefine CONFIG_ENABLE_COLORS
+#mesondefine CONFIG_WINDOW_WIDTH
+#mesondefine CONFIG_WINDOW_HEIGHT
+
+#endif
