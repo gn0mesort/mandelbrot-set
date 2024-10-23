@@ -1,6 +1,7 @@
 project(
   'mandelbrot-set',
   [ 'cpp', 'c' ],
+  meson_version: '>=1.1',
   version: '0.1.0',
   license: 'AGPL-3.0-or-later',
   license_files: [ 'LICENSE' ],
