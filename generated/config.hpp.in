@@ -1,0 +1,8 @@
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
+
+#mesondefine CONFIG_ENABLE_COLORS
+#mesondefine CONFIG_WINDOW_WIDTH
+#mesondefine CONFIG_WINDOW_HEIGHT
+
+#endif

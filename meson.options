@@ -1,0 +1,3 @@
+option('colors', type: 'feature', value: 'enabled', description: 'Whether to render using color or not.')
+option('window_width', type: 'integer', value: 1920, min: 640, description: 'The initial window width in pixels.')
+option('window_height', type: 'integer', value: 1080, min: 360, description: 'The initial window height in pixels.')
