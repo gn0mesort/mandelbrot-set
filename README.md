@@ -87,7 +87,7 @@ meson install -C build
 ## Controls
 
 When running the application you can use the W, A, S, and D keys or the arrow keys to pan the scene in two
-dimensions. You can also use your mouses scroll wheel to zoom in or out of the scene. This makes finer details of
+dimensions. You can also use your mouses scroll wheel to zoom in or out of the scene. This makes finer details of the
 fractal much easier to observe.
 
 ## Acknowledgements
