@@ -19,7 +19,6 @@ const char *const vertex_shader_src =
 
 const char *const fragment_shader_src =
   "#version 450 core\n"
-  "const float depth = 16.0;\n"
 #ifdef CONFIG_ENABLE_COLORS
   "const uint color_count = 256;\n"
   "const vec3 colors[color_count] = vec3[](\n"
@@ -284,48 +283,31 @@ const char *const fragment_shader_src =
   "layout (location = 0) uniform uint width;\n"
   "layout (location = 1) uniform uint height;\n"
   "layout (location = 2) uniform uint max_iterations;\n"
-  "layout (location = 3) uniform float time;\n"
+  "layout (location = 3) uniform float scale;\n"
+  "layout (location = 4) uniform vec2 offset;\n"
   "layout (location = 0) out vec4 o_color;\n"
   "vec2 cx_multiply(vec2 a, vec2 b) {\n"
   "  return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);\n"
   "}\n"
 #ifdef CONFIG_ENABLE_COLORS
-  "vec3 map_color(uint iterations) {\n"
-  "  float scaled = (float(iterations) / float(max_iterations)) * color_count;\n"
-  "  uint index = clamp(uint(scaled), 0, color_count - 1);\n"
-  "  return mix(colors[index], colors[min(index + 1, color_count - 1)], fract(scaled));\n"
+  "vec3 map_color(float potential) {\n"
+  "  uint index = clamp(uint(potential), 0, color_count - 1);\n"
+  "  return mix(colors[index], colors[min(index + 1, color_count - 1)], fract(potential));\n"
   "}\n"
 #endif
   "void main() {\n"
-  "  float aspect = float(width) / float(height);\n"
-  "  float scale = 1.5 / pow(2.0, depth * abs(sin(time / depth)));\n"
-  "  vec2 c = vec2(scale * 2.0 * ((gl_FragCoord.x - width / 2.0) * 4.0 / width) - (1.5 - scale),\n"
-  "                scale * 2.0 * (1.0 / aspect) * ((gl_FragCoord.y - height / 2.0) * 4.0 / height));\n"
-  "  vec2 z = vec2(0.0, 0.0);\n"
-#ifdef CONFIG_ENABLE_COLORS
-  "  bool diverged = true;\n"
-#endif
+  "  vec2 c = vec2((-2.5 + gl_FragCoord.x * (3.5 / float(width))) * scale + offset.x,\n"
+  "                (-1.0 + gl_FragCoord.y * (2.0 / float(height))) * scale + offset.y);\n"
+  "  vec2 z = vec2(0, 0);\n"
   "  uint i;\n"
-  "  for (i = 0; length(z) < 4000000; ++i)\n"
+  "  for (i = 0; length(z) <= 65536 && i < max_iterations; ++i)\n"
   "  {\n"
-  "    if (i >= max_iterations)\n"
-  "    {\n"
-#ifdef CONFIG_ENABLE_COLORS
-  "      diverged = false;\n"
-#endif
-  "      break;\n"
-  "    }\n"
-  "   z = cx_multiply(z, z) + c;\n"
+  "    z = cx_multiply(z, z) + c;\n"
   "  }\n"
 #ifdef CONFIG_ENABLE_COLORS
-  "  if (diverged)\n"
-  "  {\n"
-  "    o_color = vec4(map_color(i), 1.0);\n"
-  "  }\n"
-  "  else\n"
-  "  {\n"
-  "    o_color = vec4(colors[color_count - 1], 1.0);\n"
-  "  }\n"
+  "  const float potential = (float(i < max_iterations) * (i + 1 - log2(max(log2(length(z)), 1e-10) / 2))) +\n"
+  "                          (float(i >= max_iterations) * float(i));\n"
+  "  o_color = vec4(map_color(potential), 1.0);\n"
 #else
   "  o_color = vec4(float(i >= max_iterations) * vec3(1.0, 1.0, 1.0), 1.0);\n"
 #endif
