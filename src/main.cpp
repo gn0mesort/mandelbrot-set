@@ -6,13 +6,13 @@
  * @date 2024
  */
 #include <cstdlib>
+#include <cmath>
 
 #include <array>
 #include <string>
 #include <iostream>
 #include <algorithm>
 #include <chrono>
-#include <ratio>
 
 #include <SDL2/SDL.h>
 
@@ -163,7 +163,7 @@ int main() {
   GL_ERR_CHECK(glEnableVertexArrayAttrib(vao, 0));
   auto buffers = std::array<GLuint, 2>{ };
   GL_ERR_CHECK(glCreateBuffers(buffers.size(), buffers.data()));
-  auto& [ vertices, indices ] = buffers;
+  const auto& [ vertices, indices ] = buffers;
   GL_ERR_CHECK(glNamedBufferStorage(vertices, 8 * sizeof(GLfloat), VERTICES.data(), 0));
   GL_ERR_CHECK(glNamedBufferStorage(indices, 6 * sizeof(GLuint), INDICES.data(), 0));
   GL_ERR_CHECK(glVertexArrayVertexBuffer(vao, 0, vertices, 0, 2 * sizeof(GLfloat)));
@@ -173,16 +173,27 @@ int main() {
   GL_ERR_CHECK(glEnable(GL_MULTISAMPLE));
   GL_ERR_CHECK(glEnable(GL_FRAMEBUFFER_SRGB));
   auto zoom = 1.0f;
+  auto desired_zoom = 1.0f;
   auto offset_x = 0.0f;
   auto offset_y = 0.0f;
+  auto controls = std::array<bool, 5>{ false, false, false, false, false };
+  auto& [ up, down, left, right, escape ] = controls;
   auto ev = SDL_Event{ };
   auto quit = false;
   // Assume the viewport is dirty on the first frame.
   auto dirty = true;
+  auto start = std::chrono::steady_clock::now();
+  auto dt = std::chrono::duration<float>{ };
+  std::clog << "WASD or the arrow keys to pan." << std::endl;
+  std::clog << "Scroll the mouse wheel to zoom in/out." << std::endl;
+  std::clog << "Click the mouse wheel to reset the scene." << std::endl;
   std::clog << "Press Escape to exit..." << std::endl;
-  std::clog << "WASD or the arrow keys to pan. Mouse wheel to zoom in/out." << std::endl;
   while (!quit)
   {
+    // Update Time
+    dt = std::chrono::steady_clock::now() - start;
+    start = std::chrono::steady_clock::now();
+    // Render
     GL_ERR_CHECK(glClear(GL_COLOR_BUFFER_BIT));
     GL_ERR_CHECK(glBindVertexArray(vao));
     GL_ERR_CHECK(glUseProgram(prog));
@@ -198,6 +209,7 @@ int main() {
     GL_ERR_CHECK(glUniform2f(4, offset_x, offset_y));
     GL_ERR_CHECK(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
     SDL_GL_SwapWindow(win);
+    // Handle Input
     while (SDL_PollEvent(&ev))
     {
       switch (ev.type)
@@ -206,37 +218,44 @@ int main() {
       case SDL_QUIT:
         quit = true;
         break;
-      // Quit when the user presses and releases the physical escape key.
-      case SDL_KEYUP:
-        if (ev.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
-        {
-          quit = true;
-        }
-        break;
-      // When the use presses a key, pan the scene if it's a directional key.
+      // When a key is pressed toggle the corresponding control.
       case SDL_KEYDOWN:
+      case SDL_KEYUP:
         {
           switch (ev.key.keysym.scancode)
           {
+          case SDL_SCANCODE_ESCAPE:
+            escape = ev.key.state == SDL_PRESSED;
+            break;
           case SDL_SCANCODE_W:
           case SDL_SCANCODE_UP:
-            offset_y = std::clamp(offset_y + 0.01f * zoom, -16.0f, 16.0f);
+            up = ev.key.state == SDL_PRESSED;
             break;
           case SDL_SCANCODE_S:
           case SDL_SCANCODE_DOWN:
-            offset_y = std::clamp(offset_y - 0.01f * zoom, -16.0f, 16.0f);
+            down = ev.key.state == SDL_PRESSED;
             break;
           case SDL_SCANCODE_A:
           case SDL_SCANCODE_LEFT:
-            offset_x = std::clamp(offset_x - 0.01f * zoom, -16.0f, 16.0f);
+            left = ev.key.state == SDL_PRESSED;
             break;
           case SDL_SCANCODE_D:
           case SDL_SCANCODE_RIGHT:
-            offset_x = std::clamp(offset_x + 0.01f * zoom, -16.0f, 16.0f);
+            right = ev.key.state == SDL_PRESSED;
             break;
           default:
             break;
           }
+        }
+        break;
+      // When a mouse button is pressed (and released) handle it.
+      case SDL_MOUSEBUTTONUP:
+        if (ev.button.button == 2)
+        {
+          offset_x = 0.0f;
+          offset_y = 0.0f;
+          zoom = 1.0f;
+          desired_zoom =  1.0f;
         }
         break;
       // Mark the viewport as dirty when the window is resized.
@@ -248,11 +267,37 @@ int main() {
         break;
       // When the user scrolls the mouse wheel, zoom the scene in or out.
       case SDL_MOUSEWHEEL:
-        zoom = std::clamp(((ev.wheel.y > 0) * (zoom / 1.01f)) + ((ev.wheel.y < 0) * (zoom * 1.01f)), 0.00001f, 100.0f);
+        desired_zoom = std::clamp(((ev.wheel.y > 0) * (zoom / 1.025f)) + ((ev.wheel.y < 0) * (zoom * 1.025f)), 0.00001f,
+                                  100.0f);
         break;
       default:
         break;
       }
+    }
+    // Handling for all of the smooth controls starts here.
+    if (escape)
+    {
+      quit = true;
+    }
+    if (up)
+    {
+      offset_y = std::clamp(offset_y + 0.01f * zoom * 30.0f * dt.count(), -16.0f, 16.0f);
+    }
+    if (down)
+    {
+      offset_y = std::clamp(offset_y - 0.01f * zoom * 30.0f * dt.count(), -16.0f, 16.0f);
+    }
+    if (left)
+    {
+      offset_x = std::clamp(offset_x - 0.01f * zoom * 30.0f * dt.count(), -16.0f, 16.0f);
+    }
+    if (right)
+    {
+      offset_x = std::clamp(offset_x + 0.01f * zoom * 30.0f * dt.count(), -16.0f, 16.0f);
+    }
+    if (std::abs(zoom - desired_zoom) > 1e-5f)
+    {
+      zoom = std::lerp(zoom, desired_zoom, 10.0f * dt.count());
     }
   }
   SDL_HideWindow(win);
