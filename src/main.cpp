@@ -184,16 +184,16 @@ int main() {
   auto dirty = true;
   auto start = std::chrono::steady_clock::now();
   auto dt = std::chrono::duration<float>{ };
-  auto acc = std::chrono::duration<float>{ };
-  const auto ft = std::chrono::duration<float>{ 1.0f / 60.0f };
   std::clog << "WASD or the arrow keys to pan." << std::endl;
   std::clog << "Scroll the mouse wheel to zoom in/out." << std::endl;
   std::clog << "Click the mouse wheel to reset the scene." << std::endl;
   std::clog << "Press Escape to exit..." << std::endl;
   while (!quit)
   {
-    acc += (dt = std::chrono::steady_clock::now() - start);
+    // Update Time
+    dt = std::chrono::steady_clock::now() - start;
     start = std::chrono::steady_clock::now();
+    // Render
     GL_ERR_CHECK(glClear(GL_COLOR_BUFFER_BIT));
     GL_ERR_CHECK(glBindVertexArray(vao));
     GL_ERR_CHECK(glUseProgram(prog));
@@ -209,6 +209,7 @@ int main() {
     GL_ERR_CHECK(glUniform2f(4, offset_x, offset_y));
     GL_ERR_CHECK(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));
     SDL_GL_SwapWindow(win);
+    // Handle Input
     while (SDL_PollEvent(&ev))
     {
       switch (ev.type)
@@ -217,6 +218,7 @@ int main() {
       case SDL_QUIT:
         quit = true;
         break;
+      // When a key is pressed toggle the corresponding control.
       case SDL_KEYDOWN:
       case SDL_KEYUP:
         {
@@ -246,6 +248,7 @@ int main() {
           }
         }
         break;
+      // When a mouse button is pressed (and released) handle it.
       case SDL_MOUSEBUTTONUP:
         if (ev.button.button == 2)
         {
@@ -271,6 +274,7 @@ int main() {
         break;
       }
     }
+    // Handling for all of the smooth controls starts here.
     if (escape)
     {
       quit = true;
@@ -291,13 +295,9 @@ int main() {
     {
       offset_x = std::clamp(offset_x + 0.01f * zoom * 30.0f * dt.count(), -16.0f, 16.0f);
     }
-    while (acc >= ft)
+    if (std::abs(zoom - desired_zoom) > 1e-5f)
     {
-      if (std::abs(zoom - desired_zoom) > 1e-5f)
-      {
-        zoom = std::lerp(zoom, desired_zoom, 10.0f * ft.count());
-      }
-      acc -= ft;
+      zoom = std::lerp(zoom, desired_zoom, 10.0f * dt.count());
     }
   }
   SDL_HideWindow(win);
