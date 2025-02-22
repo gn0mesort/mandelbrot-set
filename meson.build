@@ -2,7 +2,7 @@ project(
   'mandelbrot-set',
   [ 'cpp', 'c' ],
   meson_version: '>=1.1',
-  version: '1.0.2',
+  version: '1.0.3',
   license: 'AGPL-3.0-or-later',
   license_files: [ 'LICENSE' ],
   default_options: [

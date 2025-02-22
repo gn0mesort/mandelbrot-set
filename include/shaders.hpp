@@ -305,7 +305,7 @@ const char *const fragment_shader_src =
   "    z = cx_multiply(z, z) + c;\n"
   "  }\n"
 #ifdef CONFIG_ENABLE_COLORS
-  "  const float potential = (float(i < max_iterations) * (i + 1 - log2(max(log2(length(z)), 1e-10) / 2))) +\n"
+  "  const float potential = (float(i < max_iterations) * (i + 1 - log2(max(log2(length(z)), 1e-10)))) +\n"
   "                          (float(i >= max_iterations) * float(i));\n"
   "  o_color = vec4(map_color(potential), 1.0);\n"
 #else
